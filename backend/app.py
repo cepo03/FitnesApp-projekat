@@ -4,6 +4,7 @@ from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
+from flasgger import Swagger
 
 # Baza: DATABASE_PATH za Docker (npr. /data/fitness.db), inače backend/fitness.db
 _basedir = os.path.abspath(os.path.dirname(__file__))
@@ -26,6 +27,13 @@ def create_app():
     CORS(app, supports_credentials=True, origins=['http://localhost:3000', 'http://127.0.0.1:3000'])
     bcrypt = Bcrypt(app)
     jwt = JWTManager(app)
+
+    app.config['SWAGGER'] = {
+        'title': 'Fitness App API',
+        'uiversion': 3,
+        'openapi': '3.0.0'
+    }
+    swagger = Swagger(app, template_file='swagger.yaml')
 
     @jwt.invalid_token_loader
     def invalid_token_callback(err):

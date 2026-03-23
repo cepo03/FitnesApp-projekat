@@ -1,0 +1,413 @@
+openapi: 3.0.0
+info:
+  title: Fitness App API
+  description: API documentation for the Fitness App project
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: Local server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+    Plan:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        duration_months:
+          type: integer
+    Exercise:
+      type: object
+      properties:
+        id:
+          type: integer
+        plan_id:
+          type: integer
+        name:
+          type: string
+        repetitions:
+          type: integer
+        sets:
+          type: integer
+    ProgressDay:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        day_date:
+          type: string
+          format: date
+        notes:
+          type: string
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+
+paths:
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+  /api/auth/login:
+    post:
+      summary: Login user
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+  /api/auth/me:
+    get:
+      summary: Get current authenticated user
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Success
+  
+  /api/plans:
+    get:
+      summary: List all plans for current user
+      tags:
+        - Plans
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Plan'
+    post:
+      summary: Create a new plan
+      tags:
+        - Plans
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                duration_months:
+                  type: integer
+      responses:
+        '201':
+          description: Created
+  /api/plans/{plan_id}:
+    get:
+      summary: Get plan details
+      tags:
+        - Plans
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: plan_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Not Found
+    put:
+      summary: Update a plan
+      tags:
+        - Plans
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: plan_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                duration_months:
+                  type: integer
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete a plan
+      tags:
+        - Plans
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: plan_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+  
+  /api/plans/{plan_id}/exercises:
+    get:
+      summary: List all exercises for a plan
+      tags:
+        - Exercises
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: plan_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exercise'
+    post:
+      summary: Add an exercise to a plan
+      tags:
+        - Exercises
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: plan_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                repetitions:
+                  type: integer
+                sets:
+                  type: integer
+      responses:
+        '201':
+          description: Created
+  /api/plans/{plan_id}/exercises/{ex_id}:
+    put:
+      summary: Update an exercise
+      tags:
+        - Exercises
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: plan_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: ex_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                repetitions:
+                  type: integer
+                sets:
+                  type: integer
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete an exercise
+      tags:
+        - Exercises
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: plan_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: ex_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+
+  /api/progress/days:
+    get:
+      summary: List progress days
+      tags:
+        - Progress
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: integer
+        - name: month
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Success
+    post:
+      summary: Mark or update a progress day
+      tags:
+        - Progress
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - day_date
+              properties:
+                day_date:
+                  type: string
+                  format: date
+                notes:
+                  type: string
+      responses:
+        '201':
+          description: Created
+        '200':
+          description: Updated
+  /api/progress/days/{date_str}:
+    delete:
+      summary: Unmark a progress day
+      tags:
+        - Progress
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: date_str
+          in: path
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Deleted
+  /api/progress/stats:
+    get:
+      summary: Get progress statistics
+      tags:
+        - Progress
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Success
