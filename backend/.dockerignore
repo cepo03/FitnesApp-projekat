@@ -3,5 +3,4 @@ __pycache__
 .env
 .venv
 venv
-fitness.db
 instance

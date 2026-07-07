@@ -7,7 +7,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENV DATABASE_PATH=/data/fitness.db
 EXPOSE 5000
 
 CMD ["python", "app.py"]
