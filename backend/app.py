@@ -56,11 +56,33 @@ def create_app():
     def expired_token_callback(jwt_header, jwt_payload):
         return jsonify({'error': 'Token istekao, prijavi se ponovo'}), 401
 
-    from models import db
+    from models import db, User, Plan, Exercise
     db.init_app(app)
 
+    def seed_data():
+        # create a default user + sample plan & exercise if none exist
+        from flask_bcrypt import generate_password_hash
+        if User.query.first():
+            return
+        pwd = generate_password_hash('password').decode('utf-8')
+        user = User(username='demo', email='demo@example.com', password_hash=pwd)
+        db.session.add(user)
+        db.session.commit()
+        plan = Plan(user_id=user.id, name='Demo Plan', description='Auto-created demo plan', duration_months=1)
+        db.session.add(plan)
+        db.session.commit()
+        ex = Exercise(plan_id=plan.id, name='Push Ups', repetitions=10, sets=3)
+        db.session.add(ex)
+        db.session.commit()
+
     with app.app_context():
+        # create tables from models and seed initial data (development convenience)
         db.create_all()
+        try:
+            seed_data()
+        except Exception:
+            # don't crash app startup if seeding fails
+            pass
 
     from routes.auth import auth_bp
     from routes.plans import plans_bp
