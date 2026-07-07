@@ -6,10 +6,15 @@ from flask_jwt_extended import JWTManager
 from datetime import timedelta
 from flasgger import Swagger
 
-# Baza: DATABASE_PATH za Docker (npr. /data/fitness.db), inače backend/fitness.db
+# Podrzava PostgreSQL preko DATABASE_URL ili fallback na SQLite
 _basedir = os.path.abspath(os.path.dirname(__file__))
-_db_path = os.environ.get('DATABASE_PATH') or os.path.join(_basedir, 'fitness.db')
-_db_uri = 'sqlite:///' + _db_path.replace('\\', '/')
+_db_uri = os.environ.get('DATABASE_URL')
+
+if not _db_uri:
+    _db_path = os.environ.get('DATABASE_PATH') or os.path.join(_basedir, 'fitness.db')
+    _db_uri = 'sqlite:///' + _db_path.replace('\\', '/')
+else:
+    _db_uri = _db_uri.replace('postgres://', 'postgresql://', 1)
 
 def create_app():
     app = Flask(__name__)
